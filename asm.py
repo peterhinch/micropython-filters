@@ -32,3 +32,10 @@ def clz(r0):
     data(2, 0xfa90, 0xf0a0) # Bit reverse
     data(2, 0xfab0, 0xf080) # count leading zeros
 
+@micropython.asm_thumb
+def clz(r0):
+    cmp(r0, r0)
+    ite.ge
+    add(r0, r0, r1)
+    sub(r0, r0, r1)
+

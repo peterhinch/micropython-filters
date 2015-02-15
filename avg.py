@@ -1,4 +1,7 @@
 # Implementation of moving average filter in Arm Thumb assembler
+# Author: Peter Hinch
+# 15th Feb 2015
+# Updated to reflect support for sdiv instruction
 # Timing: 27uS on MicroPython board (independent of data)
 
 # Function arguments:
@@ -47,5 +50,5 @@ def avg(r0, r1):
     ldr(r1, [r0, 0])    # Element count
     sub(r1, 3)          # No. of data points
     mov(r0, r7)         # The sum
-    data(2, 0xfb90, 0xf0f1) # sdiv not yet implemented. r0 = r0//r1
+    sdiv(r0, r0, r1)    # r0 = r0//r1
 
