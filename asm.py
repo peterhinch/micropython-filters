@@ -1,6 +1,8 @@
 # Examples of the workround for unimplemented assembler instructions
 # Author: Peter Hinch
-# 12th Feb 2015
+# 15th Feb 2015
+# Note: these instructions are now supported. I've left this file in place
+# to illustrate the technique.
 
 # Source: ARM v7-M Architecture Reference Manual
 
@@ -31,11 +33,4 @@ def clz(r0):
 def clz(r0):
     data(2, 0xfa90, 0xf0a0) # Bit reverse
     data(2, 0xfab0, 0xf080) # count leading zeros
-
-@micropython.asm_thumb
-def clz(r0):
-    cmp(r0, r0)
-    ite.ge
-    add(r0, r0, r1)
-    sub(r0, r0, r1)
 
