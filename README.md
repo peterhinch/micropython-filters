@@ -9,7 +9,7 @@ Overview
 
 These filters are intended to process integer data arriving in real time from a transducer and are capable of being used in interrupt handlers. If you're new to this, see the last section of this readme.
 
-Two filters are currently supported: a simple moving average and an FIR filter. Code is written in ARM assembler for performance. They operate on 32 bit signed integers. On the MicroPython board the moving average takes 8uS and the FIR takes 15uS for a typical set of coefficients. FIR filters can be designed for low pass, high pass, bandpass or band stop applications and the site [TFilter](http://t-filter.appspot.com/fir/index.html) enables these to be computed.
+Two filters are currently supported: a simple moving average and an FIR filter. Code is written in ARM assembler for performance. They operate on 32 bit signed integers. On the MicroPython board the moving average takes 8uS and the FIR takes 15uS for a typical set of coefficients. FIR filters can be designed for low pass, high pass, bandpass or band stop applications and the site [TFilter](http://t-filter.engineerjs.com/) enables these to be computed.
 
 Demo program
 ------------
