@@ -60,7 +60,10 @@ setup[2] = SCALE  # No wrap, normal time order.
 setup[3] = 0 # No copy back: I/P sample set unchanged
 setup[4] = 2048  # Offset
 op[0] = 0.001 # Scale
+t = utime.ticks_us()
 n_results = dcf(bufin, op, coeffs, setup)
+t = utime.ticks_diff(utime.ticks_us(), t)
+
 ns = 0
 maxop = 0
 for x in range(n_results):
@@ -75,3 +78,4 @@ for x in op:
         nextop = x
 s = 'Max correlation {:5.1f} at sample {:d} Next largest {:5.1f} Detection ratio {:5.1f}.'
 print(s.format(maxop, ns, nextop, maxop/nextop))
+print('Duration {:5d}μs'.format(t))
