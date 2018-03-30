@@ -97,10 +97,9 @@ Python.
 # 3. Function dcf
 
 This performs an FIR filtering operation (discrete convolution) on an integer
-array of input samples and an array of floating point coefficients. Results
-are placed in an array of floats, with an option to copy back to the integer
-(half word) source array. All arrays are in time order with the earliest
-entry in element 0.
+(half word) array of input samples and an array of floating point coefficients.
+Results are placed in an array of floats, with an option to copy back to the
+source array. Arrays are ordered by time with the earliest entry in element 0.
 
 If the number of samples is `N` and a decimation factor `D` is applied, the
 number of result elements is `N // D`.
@@ -167,8 +166,7 @@ op[0] = 1.1737  # Scaling factor in result array[0]
 
 The result array is in time order with the oldest result in `result[0]`. If the
 result array is longer than required, elements after the newest result will not
-be altered. If `wrap` is `False` the fist (oldest) elements will be 0 (see
-3.1.1).
+be altered.
 
 ## 3.1 Algorithm
 
@@ -221,9 +219,10 @@ corresponds to an element in the input array.
 
 Assume there are `P` coefficients. If `wrap` is `False`, as the algorithm steps
 back to earlier samples, a point arises when there are fewer than `P` samples.
-In this case it is not possible to calculate a vaild result and the output
-element is set to 0. `N` samples processed with `P` coefficients will produce
-`N-P+1` results. Subsequent elements of the result array will be unchanged.
+In this case it is not possible to calculate a vaild result. `N` samples
+processed with `P` coefficients will produce `N-P+1` results. Element 0 of the
+result array will hold the oldest valid result. Elements after the newest
+result will be unchanged.
 
 See [section 2.3](./FILT.md#23-circular-or-linear-convolution) for a discussion
 of this from an application perspective.
