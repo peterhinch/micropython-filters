@@ -168,6 +168,10 @@ The result array is in time order with the oldest result in `result[0]`. If the
 result array is longer than required, elements after the newest result will not
 be altered.
 
+The `dcf` function is built for speed, not for comfort. There are minimal
+checks on passed arguments. Required checking should be done in Python; errors
+(such as output array too small) will result in a crash.
+
 ## 3.1 Algorithm
 
 For users unfamiliar with the maths the basic algorithm is illustrated by this
@@ -185,10 +189,10 @@ def filt(ip, op, coeffs, scale, wrap, dc=2048):
         res = 0.0
         cidx = idx
         for x in range(len(coeffs) -1, -1, -1):  # Array of coeffs (float)
-            res += (ip[cidx] - dc) * coeff[idx] * scale  # end of array first
+            res += (ip[cidx] - dc) * coeff[idx]  # end of array first
             cidx -= 1
             cidx %= iplen  # Circular processing
-        op[idx] = res  # Float o/p array
+        op[idx] = res * scale  # Float o/p array
     for idx, entry in enumerate(op):  # Copy back to i/p array, restore DC
         ip[idx] = int(entry) + dc
 ```
@@ -209,8 +213,8 @@ to n-1, when processing `sample[x]`, `result[x]` is
 In the Python code DC bias is subtracted from each sample before processing -
 `dcf` uses `Setup[4]` to control this behaviour.
 
-Results in the output array do not have any DC bias restored - in other words
-they are referenced to zero.
+Results in the output array do not have DC bias restored - they are referenced
+to zero.
 
 ### 3.1.1 Wrap
 
@@ -234,8 +238,8 @@ In normal processing `Setup[3]` should be 1. If it is set to a value `D` where
 elements 0 upwards of the output array. Subsequent elements of the result array
 will be unchanged.
 
-Decimation saves processing time and RAM (in that a smaller output array may be
-used).
+Decimation saves processing time (fewer results are computed) and RAM (a
+smaller output array may be declared).
 
 ### 3.1.3 Copy
 
