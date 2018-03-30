@@ -19,7 +19,7 @@ details of the function's usage.
  * `filt.py` Module providing the `dcf` function.
  * `filt_test.py` Test/demo of FIR filtering.
  * `coeffs.py` Coefficients for the above.
- * `correlate.py` Test/demo of correlation.
+ * `correlate.py` Test/demo of correlation See [section 3.2](./FILT.md#32-correlation-test).
  * `correlate.jpg` Image of data from which a signal can be detected.
 
 The test programs use simulated data and run on import. See code comments for
@@ -280,3 +280,23 @@ includes the target signal. This can reliably be identified by `correlate.py`
 with precise timing. Not easy visually :)
 
 ![graph](./correlate.jpg)
+
+As a simulation `correlate.py` is probably unrealistic from an engineering
+perspective as sampling is at exactly the Nyquist rate. I have an application
+for correlation but have not yet tested it with real hardware. I suspect one
+of two solutions may be necessary, both involving sampling at N*Nyquist.
+
+The discussion below assumes 2*Nyquist.
+
+One approach is to double the length of the coefficient array repeating each
+coefficient so that the time sequence in the coefficient array matches that in
+the sample array. Potentially the correlation maximum will occur on two
+successive samples but in terms of time this does not imply a loss of
+precision.
+
+The other is to first run a decimation filter to reduce the rate to Nyquist. A
+decimation filter will introduce a time delay. This could be compensated for if
+the application requires precise timing.
+
+If anyone tries this before I do, please raise an issue describing your
+approach and I will amend this doc.
