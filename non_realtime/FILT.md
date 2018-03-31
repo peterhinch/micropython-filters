@@ -284,9 +284,12 @@ point in time when the entire expected signal has been received.
 ![graph](./correlate.jpg)
 
 As a simulation `correlate.py` is probably unrealistic from an engineering
-perspective as sampling is at exactly the Nyquist rate. I have an application
-for correlation but have not yet tested it with real hardware. I suspect one
-of two solutions may be necessary, both involving sampling at N*Nyquist.
+perspective as sampling is at exactly the Nyquist rate. I have not yet tested
+correlation with real hardware but I can envisage issues if the timing of the
+received signal is such that state changes in the expected signal happen to
+occur close to the sample time. To avoid uncertainty caused by signal timing
+jitter it is likely that sampling needs t be done at N*Nyquist. Two solutions
+to processing the signal suggest themselves. 
 
 The discussion below assumes 2*Nyquist.
 
@@ -299,6 +302,15 @@ precision.
 The other is to first run a decimation filter to reduce the rate to Nyquist. A
 decimation filter will introduce a time delay. However if this is applied to
 both channels the relative phase will be unaffected.
+
+In terms of performance, if sampling at Nyquist takes time T the first approach
+will take 2T. The second will take T + Tf where Tf is the time to do the FIR
+filtering. Tf will be less than T if the number of filter coefficients is less
+than the number of samples in the expected signal.
+
+If sampling at N*Nyquist where N > 2 decimation is likely to win out. Even if
+the number of filter coefficients increases, a decimation filter is fast
+because it only computes a subset of the results.
 
 If anyone tries this before I do, please raise an issue describing your
 approach and I will amend this doc.
