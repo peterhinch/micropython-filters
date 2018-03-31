@@ -288,20 +288,23 @@ perspective as sampling is at exactly the Nyquist rate. I have not yet tested
 correlation with real hardware but I can envisage issues if the timing of the
 received signal is such that state changes in the expected signal happen to
 occur close to the sample time. To avoid uncertainty caused by signal timing
-jitter it is likely that sampling needs t be done at N*Nyquist. Two solutions
+jitter it is likely that sampling should be done at N*Nyquist. Two solutions
 to processing the signal suggest themselves. 
 
 The discussion below assumes 2*Nyquist.
 
-One approach is to double the length of the coefficient array repeating each
-coefficient so that the time sequence in the coefficient array matches that in
-the sample array. Potentially the correlation maximum will occur on two
-successive samples but in terms of time this does not imply a loss of
-precision.
+One approach is to double the length of the coefficient (expected signal) array
+repeating each entry so that the time sequence in the coefficient array matches
+that in the sample array. Potentially the correlation maximum will occur on two
+successive samples but in terms of time (because of the sample rate) this does
+not imply a loss of precision.
 
 The other is to first run a decimation filter to reduce the rate to Nyquist. A
-decimation filter will introduce a time delay. However if this is applied to
-both channels the relative phase will be unaffected.
+decimation filter will introduce a time delay, but with a linear phase filter
+as produced by TFilter this is fixed and frequency-independent. Decimation is
+likely to produce the best result in the presence of noise because it is a
+filter: a suitable low pass design will remove in-band noise and aliased out of
+band frequencies.
 
 In terms of performance, if sampling at Nyquist takes time T the first approach
 will take 2T. The second will take T + Tf where Tf is the time to do the FIR
