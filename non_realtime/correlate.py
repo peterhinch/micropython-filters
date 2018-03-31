@@ -28,7 +28,7 @@ RBUFLEN = 1000
 # Signal burst length. The longer this is the greater the probability of detection.
 SIGLEN = 50
 # Digital amplitude. Compares with analog amplitude of 1000.
-DIGITAL_AMPLITUDE = 400
+DIGITAL_AMPLITUDE = 600  # 400 is about the limit with occasional false positives
 
 def rn_analog():  # Random number in range +- 1000
     return int(pyb.rng() / 536870 - 1000)
@@ -78,4 +78,5 @@ for x in op:
         nextop = x
 s = 'Max correlation {:5.1f} at sample {:d} Next largest {:5.1f} Detection ratio {:5.1f}.'
 print(s.format(maxop, ns, nextop, maxop/nextop))
+print('Correct sample no. is 930.')
 print('Duration {:5d}μs'.format(t))

@@ -277,7 +277,9 @@ sample sets may be very large.
 
 The graph below shows a 100 sample snapshot of the simulated datastream which
 includes the target signal. This can reliably be identified by `correlate.py`
-with precise timing. Not easy visually :)
+with precise timing. In the graph below the blue line represents the signal and
+the red the correlation. The highest peak occurs at the correct sample at the
+point in time when the entire expected signal has been received.
 
 ![graph](./correlate.jpg)
 
@@ -295,8 +297,8 @@ successive samples but in terms of time this does not imply a loss of
 precision.
 
 The other is to first run a decimation filter to reduce the rate to Nyquist. A
-decimation filter will introduce a time delay. This could be compensated for if
-the application requires precise timing.
+decimation filter will introduce a time delay. However if this is applied to
+both channels the relative phase will be unaffected.
 
 If anyone tries this before I do, please raise an issue describing your
 approach and I will amend this doc.
