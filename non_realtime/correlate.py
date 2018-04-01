@@ -9,12 +9,13 @@
 # The output array contains the correlation of the corrupted input with the known
 # expected signal.
 # A successful detection comprises a uniquely large value at sample 930 where the
-# signal happens to be located. The program also outputs the second largest
+# end of the signal is located. The program also outputs the second largest
 # correlation value and the ratio of the two as a measure of the certainty of
 # detection.
 
 # The chosen signal is a pseudo-random digital burst. This was chosen because the
 # auto-correlation function of random noise is an impulse function.
+# The module autocorrelate.py was used to generate this
 
 # In this test it is added to a pseudo-random analog signal of much longer
 # duration to test the reliability of discriminaton.
@@ -25,18 +26,27 @@ from array import array
 from filt import dcf, WRAP, SCALE, REVERSE
 # Read buffer length
 RBUFLEN = 1000
-# Signal burst length. The longer this is the greater the probability of detection.
-SIGLEN = 50
 # Digital amplitude. Compares with analog amplitude of 1000.
 DIGITAL_AMPLITUDE = 600  # 400 is about the limit with occasional false positives
 
 def rn_analog():  # Random number in range +- 1000
     return int(pyb.rng() / 536870 - 1000)
 
-def rn_digital():  # Random number  +1000 or -1000
-    return DIGITAL_AMPLITUDE if pyb.rng() & 1 else -DIGITAL_AMPLITUDE
+# Data produced by autocorrelate.py
+# signal length = 50 The longer this is the greater the probability of detection.
+# Actual max runlength = 6 DIGITAL_AMPLITUDE 600 gave DR of ~2.4
+#signal = bytearray([-1,-1,1,1,-1,1,-1,-1,1,-1,1,-1,1,1,1,1,
+#-1,1,-1,1,-1,-1,-1,-1,-1,-1,1,1,1,-1,-1,1,
+#1,1,-1,1,1,1,-1,1,1,-1,-1,1,-1,-1,1,-1,
+#1,-1,])
 
-signal = array('i', (rn_digital() for i in range(SIGLEN)))  # +-DIGITAL_AMPLITUDE
+# Actual max runlength 3 DIGITAL_AMPLITUDE 600 gave DR of ~2.2
+# in repeated (> 70) runs lowest DR seen was 1.3, with no false positives.
+signal = bytearray([-1,-1,1,1,-1,-1,1,1,-1,1,-1,1,1,-1,1,-1,
+-1,-1,1,1,-1,1,1,-1,1,1,1,-1,-1,1,-1,-1,
+1,1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,-1,
+1,-1,])
+siglen = len(signal)
 
 # Input buffer contains random noise. While this is a simulation, the bias of 2048
 # emulates a Pyboard ADC biassed at its mid-point (1.65V).
@@ -44,13 +54,14 @@ signal = array('i', (rn_digital() for i in range(SIGLEN)))  # +-DIGITAL_AMPLITUD
 bufin = array('H', (2048 + rn_analog() for i in range(RBUFLEN)))  # range 2048 +- 1000
 
 # Add signal in. Burst ends 20 samples before the end.
-x = RBUFLEN - SIGLEN - 20
+x = RBUFLEN - siglen - 20
 for s in signal:
-    bufin[x] += s
+    s = 1 if s == 1 else -1
+    bufin[x] += s * DIGITAL_AMPLITUDE
     x += 1
 
 # Coeffs hold the expected signal in normal time order (oldest first).
-coeffs = array('f', (signal[i] / DIGITAL_AMPLITUDE for i in range(SIGLEN)))  # range +-1
+coeffs = array('f', (1 if signal[i] == 1 else -1 for i in range(siglen)))  # range +-1
 
 op = array('f', (0 for _ in range(RBUFLEN)))
 setup = array('i', [0]*5) 
@@ -78,5 +89,8 @@ for x in op:
         nextop = x
 s = 'Max correlation {:5.1f} at sample {:d} Next largest {:5.1f} Detection ratio {:5.1f}.'
 print(s.format(maxop, ns, nextop, maxop/nextop))
-print('Correct sample no. is 930.')
+if ns == 930:
+    print('Correct detection.')
+else:
+    print('FALSE POSITIVE.')
 print('Duration {:5d}μs'.format(t))

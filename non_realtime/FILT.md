@@ -111,7 +111,7 @@ this allows the result array to be smaller than the sample array, saving RAM.
 The function does not allocate memory.
 
 Args:  
- `r0` The input sample array. An array of half words.  
+ `r0` The input sample array. An array of unsigned half words.  
  `r1` The result array. An array of floats. In the normal case where the
  decimation factor is 1 this should be the same length as the sample array. If
  decimating by N its length must be >= (no. of samples)/N.  
