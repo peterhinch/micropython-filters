@@ -23,7 +23,7 @@ details of the function's usage.
  * `filt_test.py` Test/demo of FIR filtering.
  * `coeffs.py` Coefficients for the above.
  * `correlate.py` Test/demo of correlation See [section 3.2](./FILT.md#32-correlation-test).
- * `autocorrelate.py` Demo of autocorrelation using `dcf_fp` [section 3.3](./FILT.md#33-autocorrelate.py).
+ * `autocorrelate.py` Demo of autocorrelation using `dcf_fp` [section 3.3](./FILT.md#33-autocorrelation).
  * `samples.py` Example of the output of `autocorrelate.py`.
  * `filt_test_all` Test suite for `dcf` and `dcf_fp` functions.
  * `correlate.jpg` Image showing data recovery from noise.
@@ -289,10 +289,10 @@ sample sets may be very large.
 
 ## 3.2 Correlation test
 
-The program `correlate.py` used a signal designed to have a zero DC component,
+The program `correlate.py` uses a signal designed to have a zero DC component,
 a runlength limited to two consecutive 1's or 0's, and an autocorrelation
 function approximating to an impulse function. It adds it in to a long sample
-of analog noise and then uses the correlation to determine its location in the
+of analog noise and then uses correlation to determine its location in the
 summed signal.
 
 The graph below shows a 100 sample snapshot of the simulated datastream which
@@ -338,10 +338,10 @@ because it only computes a subset of the results.
 If anyone tries this before I do, please raise an issue describing your
 approach and I will amend this doc.
 
-## 3.3 autocorrelate.py
+## 3.3 Autocorrelation
 
-This demonstrates autocorrelation using `dcf_fp`, producing bit sequences with
-the following characteristics:  
+The file `autocorrelate.py` demonstrates autocorrelation using `dcf_fp`,
+producing bit sequences with the following characteristics:  
  1. The sequence length is specified by the caller.
  2. The number of 1's is equal to the number of 0's (no DC component).
  3. The maximum run length (number of consecutive identical bits) is defined by
@@ -362,4 +362,5 @@ the next largest result) is calculated.
 This is repeated until the specified runtime has elapsed, with successive bit
 patterns having the highest detection ratio achieved being written to the file.
 
-It produces a Python file on the Pyboard (default name `/sd/samples.py`).
+It produces a Python file on the Pyboard (default name `/sd/samples.py`). An
+example is provided to illustrate the format.
