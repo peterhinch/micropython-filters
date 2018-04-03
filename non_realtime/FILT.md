@@ -1,26 +1,32 @@
 # 1. Fast filtering of sample arrays
 
 A function `dcf` is provided which performs discrete convolution on an array of
-samples acquired from an ADC. This enables the implementation of finite impulse
-response (FIR) filters with characteristics including high pass, low pass, band
-pass and band stop. It achieves millisecond and sub-ms level performance on
-platforms using STM chips (for example the Pyboard). To achieve this it uses
-the MicroPython inline assembler for the ARM Thumb instruction set. It uses the
-hardware floating point unit.
+integer samples acquired from an ADC. This enables the implementation of finite
+impulse response (FIR) filters with characteristics including high pass, low
+pass, band pass and band stop. It achieves millisecond and sub-ms level
+performance on platforms using STM chips (for example the Pyboard). To achieve
+this it uses the MicroPython inline assembler for the ARM Thumb instruction
+set. It uses the hardware floating point unit.
 
 It can also be used for techniques such as correlation to detect signals in the
 presence of noise.
+
+A version `dcf_fp` is effectively identical but accepts an array of floats as
+input.
 
 Section 2 describes the underlying principles with section 3 providing the
 details of the function's usage.
 
 ## 1.1 Files
 
- * `filt.py` Module providing the `dcf` function.
+ * `filt.py` Module providing the `dcf` function and the `dcf_fp` float version.
  * `filt_test.py` Test/demo of FIR filtering.
  * `coeffs.py` Coefficients for the above.
  * `correlate.py` Test/demo of correlation See [section 3.2](./FILT.md#32-correlation-test).
- * `correlate.jpg` Image of data from which a signal can be detected.
+ * `autocorrelate.py` Demo of autocorrelation using `dcf_fp` [section 3.3](./FILT.md#33-autocorrelate.py).
+ * `samples.py` Example of the output of `autocorrelate.py`.
+ * `filt_test_all` Test suite for `dcf` and `dcf_fp` functions.
+ * `correlate.jpg` Image showing data recovery from noise.
 
 The test programs use simulated data and run on import. See code comments for
 documentation.
@@ -94,12 +100,16 @@ the coefficients to be computed. For `dcf` select the `double` option to
 make it produce floating point results. The C/C++ option is easy to convert to
 Python.
 
-# 3. Function dcf
+# 3. Function dcf (and dcf_fp)
 
-This performs an FIR filtering operation (discrete convolution) on an integer
+`dcf` performs an FIR filtering operation (discrete convolution) on an integer
 (half word) array of input samples and an array of floating point coefficients.
 Results are placed in an array of floats, with an option to copy back to the
 source array. Arrays are ordered by time with the earliest entry in element 0.
+
+Samples must be >= 0, as received from an ADC. The alternative implementation
+`dcf_fp` in the file `filt_fp` is identical except that the input array is an
+array of floats with no value restriction.
 
 If the number of samples is `N` and a decimation factor `D` is applied, the
 number of result elements is `N // D`.
@@ -111,7 +121,8 @@ this allows the result array to be smaller than the sample array, saving RAM.
 The function does not allocate memory.
 
 Args:  
- `r0` The input sample array. An array of unsigned half words.  
+ `r0` The input sample array. An array of unsigned half words (`dcf`) for
+ `dcf_fp` an array of floats is required.  
  `r1` The result array. An array of floats. In the normal case where the
  decimation factor is 1 this should be the same length as the sample array. If
  decimating by N its length must be >= (no. of samples)/N.  
@@ -119,7 +130,7 @@ Args:
  `r3` Setup: an integer array of 5 elements.
 
 `Setup[0]` Length of the sample array.  
-`Setup[1]` Length of the coefficient array. Must be < length of sample array.  
+`Setup[1]` Length of the coefficient array. Must be <= length of sample array.  
 `Setup[2]` Flags (bits controlling algorithm behaviour). See below.  
 `Setup[3]` Decimation factor. For no decimation set to 1.  
 `Setup[4]` Offset. DC offset of input samples. Typically 2048. If -1 the
@@ -131,7 +142,7 @@ decimation value. Valid data occupy result array elements 0 to `n_results -1`.
 Any subsequent output array elements will retain their original contents.
 
 Flags:  
-`b0` Wrap. See section 3.1.1.  
+`b0` Wrap. Determines circular or linear processing. See section 3.1.1.  
 `b1` Scale. If set, scale all results by a factor. If used, the (float) scale
 factor must be placed in element 0 of the result array. All results are
 multiplied by this factor. Scaling is a convenience feature: the same result
@@ -145,9 +156,10 @@ performed in the default (forward) order. If using coefficients from
 immaterial as these arrays are symmetrical (linear phase filters). For
 convolution the reverse order should be selected.  
 `b3` Copy. Determines whether results are copied back to the sample array. If
-this is selected the results are converted to integers and the DC bias is
-restored. If decimation is selected elements 0 to `N // D` will be populated.
-Remaining samples will be set to the mean (DC bias) level.
+this is selected `dcf` converts the results to integers. In either case (`dcf`
+or `dcf_fp`) the DC bias is restored. If decimation is selected elements 0 to
+`N // D` will be populated. Remaining samples will be set to the mean (DC bias)
+level.
 
 Constants `WRAP`, `SCALE`, `REVERSE` and `COPY` are provided enabling the flags
 to be set by the logical `or` of the chosen constants. Typical setup code is as
@@ -168,9 +180,10 @@ The result array is in time order with the oldest result in `result[0]`. If the
 result array is longer than required, elements after the newest result will not
 be altered.
 
-The `dcf` function is built for speed, not for comfort. There are minimal
-checks on passed arguments. Required checking should be done in Python; errors
-(such as output array too small) will result in a crash.
+These assembler functions are built for speed, not for comfort. There are
+minimal checks on passed arguments. Required checking should be done in Python;
+errors (such as output array too small) will result in a crash. Supplying `dcf`
+with samples < 0 won't crash but will produce garbage.
 
 ## 3.1 Algorithm
 
@@ -260,8 +273,9 @@ for a discussion of this.
 On a Pyboard V1.1 a convolution of 128 samples with 41 coefficients, computing
 the mean, using wrap and copying all samples back, took 912μs. This compares
 with 128ms for a MicroPython version using the standard code emitter. While
-the time is dependent on the number of coefficients it will be reduced if a
-fixed offset and/or no wrap is used.
+the time is dependent on the number of samples and coefficients it is otherwise
+something of a worst case. It will be reduced if a fixed offset, no wrap or
+decimation is used.
 
 A correlation of 1000 samples with a 50 coefficient signal takes 7.6ms.
 
@@ -274,6 +288,12 @@ few coefficients. This contrasts with statistical applications where both
 sample sets may be very large.
 
 ## 3.2 Correlation test
+
+The program `correlate.py` used a signal designed to have a zero DC component,
+a runlength limited to two consecutive 1's or 0's, and an autocorrelation
+function approximating to an impulse function. It adds it in to a long sample
+of analog noise and then uses the correlation to determine its location in the
+summed signal.
 
 The graph below shows a 100 sample snapshot of the simulated datastream which
 includes the target signal. This can reliably be identified by `correlate.py`
@@ -317,3 +337,29 @@ because it only computes a subset of the results.
 
 If anyone tries this before I do, please raise an issue describing your
 approach and I will amend this doc.
+
+## 3.3 autocorrelate.py
+
+This demonstrates autocorrelation using `dcf_fp`, producing bit sequences with
+the following characteristics:  
+ 1. The sequence length is specified by the caller.
+ 2. The number of 1's is equal to the number of 0's (no DC component).
+ 3. The maximum run length (number of consecutive identical bits) is defined by
+ the caller.
+ 4. The autocorrelation function is progressively optimised.
+
+The aim is to produce a bitstream suitable for applying to physical transducers
+(or to radio links), such that the bitstream may be detected in the presence of
+noise. The ideal autocorrelation would be a pulse corresponding to a single
+sample, with 0 elsewhere. This cannot occur in practice but the algorithm
+produces a "best possible" solution quickly.
+
+The algorithm is stochastic. It creates a random bit pattern meeting the
+runlength criterion, discarding any with a DC component. It then performs a
+linear autocorrelation on it. The detection ratio (ratio of "best" result to
+the next largest result) is calculated.
+
+This is repeated until the specified runtime has elapsed, with successive bit
+patterns having the highest detection ratio achieved being written to the file.
+
+It produces a Python file on the Pyboard (default name `/sd/samples.py`).
