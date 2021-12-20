@@ -62,19 +62,20 @@ python3 coeff_format.py inputfilename outputfilename.py
 ```
 The result will be Python code defining the array.
 
-Two MicroPython solutions are offered. The choice depends on the platform in
-use. `fir_py.py` uses the Viper code emitter and should run on any platform.
-`fir.py` uses inline Arm Thumb assembler and will run on hosts using ARM V6 or
-later. This includes all Pyboards and boards using the Raspberry RP2 chip (e.g.
-the Raspberry Pico). Using the Assembler version is slightly more inolved but
-it runs about four times faster (on the order of 15μs).
+## Coefficient order
+
+The website cited above generates symmetrical (linear phase) sets of
+coefficients. In other words, for a set of n coefficients,
+`coeff[x] == coeff[n-x]`. For coefficient arrays lacking this symmetry note
+that the code applies coefficients to samples such that the oldest sample is
+multiplied by `coeff[0]` and so on with the newest getting `coeff[n]`.
 
 ## Scaling
 
 Calculations are based on 32 bit signed arithmetic. Given that few transducers
 offer more than 16 bit precision there is a lot of headroom. Nevertheless
 overflow can occur depending on the coefficient size. The maximum output from
-the multiplication is max(data)*max(coeffs) but the subsequent addition offers
+the multiplication is `max(data)*max(coeffs)` but the subsequent addition offers
 further scope for overflow. In applications with analog output there is little
 point in creating results with more precision than the output DAC. The `fir()`
 function includes scaling by performing an arithmetic right shift on the result
@@ -85,13 +86,14 @@ don't know it. In my `lpf.py` example I apply a scaling of 16 bits to preserve
 the 12 bit resolution of the ADC then scale the result in Python to match the
 DAC.
 
-## Coefficient order
+## Solutions
 
-The website cited above generates symmetrical (linear phase) sets of
-coefficients. In other words, for a set of n coefficients,
-`coeff[x] == coeff[n-x]`. For coefficient arrays lacking this symmetry note
-that the code applies coefficients to samples such that the oldest sample is
-multiplied by `coeff[0]` and so on with the newest getting `coeff[n]`.
+Two MicroPython solutions are offered. The choice depends on the platform in
+use. `fir_py.py` uses the Viper code emitter and should run on any platform.
+`fir.py` uses inline Arm Thumb assembler and will run on hosts using ARM V6 or
+later. This includes all Pyboards and boards using the Raspberry RP2 chip (e.g.
+the Raspberry Pico). Using the Assembler version is slightly more inolved but
+it runs about four times faster (on the order of 15μs).
 
 ## Portable FIR using Viper
 
@@ -152,10 +154,13 @@ print(fir(data, coeffs, 1))
 for n in range(ncoeffs + 3):
     print(fir(data, coeffs, 0))
 ```
+This example simulates an impulse function passing through the filter. The
+outcome simply replays the coefficients followed by zeros once the impulse has
+cleared the filter.
 
 ## Demo program
 
-The file `lpf.py` uses the board as a low pass filter with a cutoff of 40Hz. It
+The file `lpf.py` uses a Pyboard as a low pass filter with a cutoff of 40Hz. It
 processes an analog input presented on pin X7, filters it, and outputs the
 result on DAC2 (X6). For convenience the code includes a swept frequency
 oscillator with output on DAC1 (X5). By linking X5 and X7 the filtered result
@@ -178,16 +183,23 @@ different sets of coefficients.
 
 ## Performance
 
-A 41 tap FIR on a MicroPython board takes 16uS. For other sizes the time can be
-estimated as 10 + 0.136N uS where N is number of coefficients. The penalty in
-terms of memory use is that each coefficient requires 8 bytes in the two arrays
-used by the code.
+These results were measured on a Pyboard 1.1 running firmware V1.17. Times are
+in μs and were measured using `firtest.py` (adapted to run the Viper version).
+The accuracy of these timings is suspect as they varied between runs - and it
+makes no sense for the 41 tap filter to run faster than the 21 tap. However
+they give an indication of performance.
+
+| Taps | Asm | Viper |
+|:----:|:---:|:-----:|
+| 21   | 18  |  33   |
+| 41   |  9  |  32   |
+| 109  | 30  |  93   |
 
 # Moving average
 
 A moving average is a degenerate case of an FIR filter with unity coefficients.
-As such it can run faster. On the Pyboard 1.1 the moving average takes 8μS and
-the FIR takes 15μS for a typical set of coefficients.
+As such it can run faster. On the Pyboard 1.1 the moving average takes abot 8μs
+for a typical set of coefficients.
 
 The Raspberry Pico ARM V6 assembler doesn't support integer division. A special
 version `avg_pico.py` runs on the Pico but produces a result of `N*average`
