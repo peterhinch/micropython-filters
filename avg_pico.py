@@ -1,7 +1,6 @@
-# Implementation of moving average filter in Arm Thumb assembler
+# Implementation of moving average filter in Arm Thumb V6 assembler for Pico
 # Released under the MIT License (MIT). See LICENSE.
 # Copyright (c) 2021 Peter Hinch
-# Timing: 27uS on MicroPython board (independent of data)
 
 # Function arguments:
 # r0 is an integer scratchpad array. Must be of length 3 greater than
@@ -49,4 +48,4 @@ def avg(r0, r1):
     ldr(r1, [r0, 0])    # Element count
     sub(r1, 3)          # No. of data points
     mov(r0, r7)         # The sum
-    sdiv(r0, r0, r1)    # r0 = r0//r1
+    # sdiv(r0, r0, r1)    # r0 = r0//r1 Unsupported by arm V6

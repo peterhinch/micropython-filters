@@ -1,7 +1,9 @@
 # Test functions for FIR filter
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2021 Peter Hinch
 
 import array
-import pyb
+from time import ticks_us, ticks_diff
 from fir import fir
 
 # Coefficient options
@@ -40,13 +42,13 @@ def test():             # Impulse response replays coeffs*impulse_size >> scale
         print(fir(data, coeffs, 0))
 
 def timing():           # Test removes overhead of pyb function calls
-    t = pyb.micros()
+    t = ticks_us()
     fir(data, coeffs, 100)
-    t1 = pyb.elapsed_micros(t)
-    t = pyb.micros()
+    t1 = ticks_diff(ticks_us(), t)
+    t = ticks_us()
     fir(data, coeffs, 100)
     fir(data, coeffs, 100)
-    t2 = pyb.elapsed_micros(t)
+    t2 = ticks_diff(ticks_us(), t)
     print(t2-t1,"uS")
 # Results: 14uS for a 21 tap filter, 16uS for 41 taps, 23uS for 109 (!)
 # Time = 12 + 0.102N uS where N = no. of taps

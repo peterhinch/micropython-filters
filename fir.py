@@ -1,7 +1,7 @@
 # Implementation of FIR filter in Arm Thumb assembler
-# Author: Peter Hinch
-# 15th Feb 2015
-# Updated to reflect support for push and pop
+# Released under the MIT License (MIT). See LICENSE.
+# Copyright (c) 2021 Peter Hinch
+# 22nd Dec 2021: update to support ARMV6.
 # Calculate coefficients here: http://t-filter.appspot.com/fir/index.html
 
 # Function arguments:
@@ -35,7 +35,8 @@
 
 @micropython.asm_thumb
 def fir(r0, r1, r2):
-    push({r8})
+    mov(r3, r8)         # For Pico: can't push({r8}). r0-r7 only.
+    push({r3})
     ldr(r7, [r0, 0])    # Array length
     mov(r6, r7)         # Copy for filter
     mov(r3, r0)
@@ -57,7 +58,7 @@ def fir(r0, r1, r2):
     label(BUFOK)
     str(r4, [r0, 8])    # Save the insertion point for next call
                         # *** Filter ***
-    ldr(r0, [r0, 4])    # Bits to shift ??????????
+    ldr(r0, [r0, 4])    # Bits to shift
     mov(r8, r0)
     mov(r0, 0)          # r0 Accumulator
     label(FILT)
@@ -75,5 +76,6 @@ def fir(r0, r1, r2):
     add(r0, r2, r0)
     sub(r6, 1)
     bpl(FILT)
-    pop({r8})
+    pop({r3})
+    mov(r8, r3)   # Restore R8
 
