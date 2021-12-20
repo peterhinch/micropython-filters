@@ -1,6 +1,6 @@
 # Fast Filters for the Pyboard
 
-V0.92 16th December 2021 Updated to improve portability.  
+V0.92 20th December 2021 Updated to improve portability.  
 Author: Peter Hinch
 
 # Introduction
@@ -29,8 +29,8 @@ pass, high pass or bandpass characteristics.
 The `fir.py` and `avg.py` modules use ARM Thumb V6 inline assembly language for
 performance and can run on Pyboards (Thumb V7) and also the Raspberry Pico
 (V6). The `fir_py.py` module is written in pure Python using the Viper emitter
-for performance. It is therefore portable, but runs at about 25% of the speed
-of the assembler versions.
+for performance. It is therefore portable, but runs at about 33% of the speed
+of the assembler version.
 
 Filter functions may be called from hard ISR's.
 
@@ -93,7 +93,7 @@ use. `fir_py.py` uses the Viper code emitter and should run on any platform.
 `fir.py` uses inline Arm Thumb assembler and will run on hosts using ARM V6 or
 later. This includes all Pyboards and boards using the Raspberry RP2 chip (e.g.
 the Raspberry Pico). Using the Assembler version is slightly more inolved but
-it runs about four times faster (on the order of 15μs).
+it runs about three times faster (on the order of 15μs).
 
 ## Portable FIR using Viper
 
@@ -120,6 +120,9 @@ The `create_fir` function takes the following mandatory positional args:
  1. `coeffs` A 32 bit integer array of coefficients.
  2. `shift` The result of each multiplication is shifted right by `shift` bits
  before adding to the result. See Scaling above.
+
+Note that Viper can issue very confusing error messages. If these occur, check
+the data types passed to `create_fir` and `fir`.
 
 ## FIR using ARM Thumb Assembler
 
@@ -198,8 +201,8 @@ they give an indication of performance.
 # Moving average
 
 A moving average is a degenerate case of an FIR filter with unity coefficients.
-As such it can run faster. On the Pyboard 1.1 the moving average takes abot 8μs
-for a typical set of coefficients.
+As such it can run faster. On the Pyboard 1.1 the moving average takes about
+8μs for a typical set of coefficients.
 
 The Raspberry Pico ARM V6 assembler doesn't support integer division. A special
 version `avg_pico.py` runs on the Pico but produces a result of `N*average`
