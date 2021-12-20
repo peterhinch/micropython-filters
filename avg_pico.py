@@ -20,7 +20,8 @@
 # r7 temporary store for result
 
 @micropython.asm_thumb
-def avg(r0, r1):
+def avg(r0, r1, r2):
+    push({r2})
     mov(r3, r0)
     add(r3, 12)         # r3 points to ring buffer start
     ldr(r2, [r0, 0])    # Element count
@@ -48,4 +49,5 @@ def avg(r0, r1):
     ldr(r1, [r0, 0])    # Element count
     sub(r1, 3)          # No. of data points
     mov(r0, r7)         # The sum
-    # sdiv(r0, r0, r1)    # r0 = r0//r1 Unsupported by arm V6
+    pop({r2})
+    asr(r0, r2)         # Scale (r0 = r0//r1 Unsupported by arm V6)

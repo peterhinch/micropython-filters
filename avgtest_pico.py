@@ -6,24 +6,24 @@
 
 import array
 from time import ticks_us, ticks_diff
-from avg import avg
+from avg_pico import avg
 
-data = array.array('i', [0]*13) # Average over ten samples
+data = array.array('i', (0 for _ in range(19))) # Average over 16 samples
 data[0] = len(data)
 
 def test():
-    for x in range(12):
-        print(avg(data, 1000))
-    for x in range(12):
-        print(avg(data, 0))
+    for x in range(16):
+        print(avg(data, 1000, 4))  # Scale by 4 bits (divide by 16)
+    for x in range(18):
+        print(avg(data, 0, 4))
 
 def timing():
     t = ticks_us()
-    avg(data, 10)
+    avg(data, 10, 4)
     t1 = ticks_diff(ticks_us(), t)  # Time for one call with timing overheads
     t = ticks_us()
-    avg(data, 10)
-    avg(data, 10)
+    avg(data, 10, 4)
+    avg(data, 10, 4)
     t2 = ticks_diff(ticks_us(), t)  # Time for two calls with timing overheads
     print(t2-t1,"uS")           # Time to execute the avg() call
 

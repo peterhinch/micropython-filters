@@ -205,22 +205,25 @@ As such it can run faster. On the Pyboard 1.1 the moving average takes about
 8μs for a typical set of coefficients.
 
 The Raspberry Pico ARM V6 assembler doesn't support integer division. A special
-version `avg_pico.py` runs on the Pico but produces a result of `N*average`
-where `N` is the number of samples in the set. On Pyboards and other ARMV7
-targets, the file `avg.py` produces expected values. Both versions provide a
-function `avg`.
+version `avg_pico.py` runs on the Pico. This offers scaling using a right shift
+operation which produces correct resullts if the number of entries is a power
+of 2. Alternatively with a scaling factor of 0 the result is `N*average` where
+`N` is the number of entries.
+
+On Pyboards and other ARMV7 targets, the file `avg.py` produces expected values
+for all `N`. Both versions provide a function `avg`.
 
 ## Moving Average Usage
 
-The `avg` function takes two arguments:
- 1. An integer array of length equal to the no. of entries to average over +3.
+The `avg` function takes two arguments, or three in the Pico case:
+ 1. An integer array of length equal to the no. of entries to average +3.
  2. The new data value.
+ 3. The scaling value (number of bits to shift right) - Pico only.
 
 The function returns an integer which is the current filtered value.  
 Initially all elements of the data array must be zero, except `data[0]` which
 should be set to `len(data)`  
-The program `avgtest.py` illustrates its operation. For use on the Pico the
-import statement should be changed to read
+The test scripts `avgtest.py` and `avgtest_pico.py` illustrate its operation.
 ```python
 from avg_pico import avg
 ```
