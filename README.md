@@ -34,6 +34,15 @@ of the assembler version.
 
 Filter functions may be called from hard ISR's.
 
+The following images show Bode and Nyquist plots of measured results from a
+Pyboard 1.1. The test signal was fed into a Pyboard ADC, with the resultant
+signal on the DAC being plotted. -60dB is the noise floor of my home-brew
+network analyser.
+
+![Image](./images/lpf_bode.jpg)  
+
+![Image](./images/lpf_nyquist.jpg)  
+
 ## Non-realtime filtering
 
 This processes a set of samples in a buffer, for example processing sample sets
