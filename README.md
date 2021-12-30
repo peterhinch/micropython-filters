@@ -81,10 +81,10 @@ point in creating results with more precision than the output DAC. The `fir()`
 function includes scaling by performing an arithmetic right shift on the result
 of each multiplication. This can be in the range of 0-31 bits, although 20 bits
 is a typical maximum.  
-Doubtless there is an analytical way to determine the optimum scaling. Alas I
-don't know it. In my `lpf.py` example I apply a scaling of 16 bits to preserve
-the 12 bit resolution of the ADC then scale the result in Python to match the
-DAC.
+For an analytical way to determine the minimum scaling required to prevent
+overflow see Appendix 1. The `lpf.py` example applies a scaling of 16 bits to
+preserve the 12 bit resolution of the ADC which is then scaled in Python to
+match the DAC.
 
 ## Solutions
 
@@ -261,3 +261,42 @@ drops to zero after N samples because the impulse has passed through the
 filter. This contrasts with an IIR (infinite impulse response) filter where the
 response theoretically continues forever. Analog circuits such as a CR network
 can have an IIR response, as do some digital filters.
+
+# Appendix 1 Determining scaling
+
+The following calculation determines the number of bits required to represent
+the outcome when a worst-case signal passes through an FIR filter. The ADC is
+assumed to be biassed for symmetrical output. The worst-case signal, at some
+amount of shift through the filter, has maximum positive excursion matching
+positive coefficients and maximum negative excursion matching negative
+coefficients. This will produce the largest possible positive sum. By symmetry
+a negative result of equal magnitude could result, where a negative signal
+matches a positive coefficient and vice-versa.
+
+There are two places where overflow can occur: in the multiplication and in the
+subsequent addition. The former cannot be compensated: the coefficients need to
+be reduced in size. The latter can be compensated by performing a right shift
+after the multiplication, and the Assembler routine provides for this.
+
+The following code calculates the number of bits required to accommodate this
+result. On 32-bit platforms, small integers occupy 31 bits holding values up to
++-2^30. Consequently if this script indicates that 33 bits are required,
+scaling of at least 2 bits must be applied to guarantee no overflow.
+
+```python
+from math import log
+
+# Return no. of bits to contain a positive integer
+def nbits(n : int) -> int:
+    return int(log(n) // log(2)) + 1
+
+def get_shift(coeffs : list, adcbits : int =12):
+    # Assume ADC is biassed for equal + and - excursions
+    maxadc = (2 ** (adcbits - 1) - 1)  # 2047 for 12 bit ADC
+    lv = sorted([abs(x) * maxadc for x in coeffs], reverse=True)
+    # Add 1 to allow for equal negative swing
+    print("Max no. of bits for multiply", nbits(lv[0]) + 1)
+    print("Max no. of bits for sum of products", nbits(sum(lv) + 1))
+```
+
+

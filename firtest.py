@@ -52,7 +52,7 @@ def timing():           # Test removes overhead of pyb function calls
     print(t2-t1,"uS")
 # Results: 14uS for a 21 tap filter, 16uS for 41 taps, 23uS for 109 (!)
 # Time = 12 + 0.102N uS where N = no. of taps
-
+# Tests on large numbers suggest the formula t = 10 + 0.12N is closer
 test()
 print("Done! Timing:")
 timing()
