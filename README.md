@@ -109,7 +109,7 @@ it runs about three times faster (on the order of 15μs).
 The `fir_py` module uses a closure to enable the function to retain state
 between calls. Usage is as follows:
 ```python
-from fir_py import fir_c
+from fir_py import create_fir
 from array import array
 # 21 tap LPF. Figures from TFilter.
 coeffs = array('i', (-1318, -3829, -4009, -717, 3359, 2177, -3706, -5613,

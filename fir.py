@@ -75,7 +75,7 @@ def fir(r0, r1, r2):
     asr(r2, r7)         # Scale result before summing
     add(r0, r2, r0)
     sub(r6, 1)
-    bpl(FILT)
+    bne(FILT)  # > 0. bpl branched when >= 0
     pop({r3})
     mov(r8, r3)   # Restore R8
 
